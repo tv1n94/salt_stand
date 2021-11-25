@@ -1,0 +1,68 @@
+- name: install salt
+  hosts: masters,minions
+  become: yes
+  tasks:
+  - name: add gpg Salt
+    apt_key:
+      url: "https://repo.saltstack.com/py3/ubuntu/20.04/amd64/latest/SALTSTACK-GPG-KEY.pub"
+      state: present
+
+  - name: add salt repo
+    apt_repository:
+      repo: 'deb http://repo.saltstack.com/py3/ubuntu/20.04/amd64/latest {{ ansible_distribution_release }} main'
+      state: present
+  
+  - name: install Salt-master
+    apt:
+      name: 
+        - salt-api 
+        - salt-cloud
+        - salt-master
+        - salt-ssh
+        - salt-syndic
+      state: present
+      update_cache: true
+    when: (ansible_hostname == "master")
+
+
+  - name: install Salt-minions
+    apt:
+      name: 
+        - salt-minion
+      state: present
+      update_cache: true
+    when: (ansible_hostname == "minion1") or 
+          (ansible_hostname == "minion2") 
+
+  - name: Set up salt master
+    template:
+      src: ./templates/master
+      dest: /etc/salt/master
+      owner: root
+      group: root
+      mode: 0644
+    when: (ansible_hostname == "master")
+
+  - name: restart salt-master
+    service: 
+      name: salt-master
+      enabled: yes
+      state: restarted
+    when: (ansible_hostname == "master")
+
+  - name: set up hosts files
+    template:
+      src: ./templates/hosts.j2
+      dest: /etc/hosts
+      owner: root
+      group: root
+      mode: 0644
+    when: (ansible_hostname == "minion1") or 
+          (ansible_hostname == "minion2") 
+
+  - name: add minions keys 
+    shell: yes | salt-key -A
+    when: (ansible_hostname == "master") 
+
+
+      
