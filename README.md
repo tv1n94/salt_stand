@@ -7,6 +7,8 @@ How to provision stand:
 3) Switch user to root: `sudo -i`
 4) Add minion keys: `salt-key -A`
 
+**Base commands**
+*Commands run from root:*
 
 Check added keys: `salt-key -L`
 
@@ -20,3 +22,6 @@ Show information about minion1 host (grains): `salt minion1 grains.items`
 
 *For using ssh we need use roster-file*
 
+Test run simple state: `salt '*' state.highstate test=True`
+
+Run simple state: `salt '*' state.highstate`

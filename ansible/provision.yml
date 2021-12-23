@@ -61,8 +61,45 @@
           (ansible_hostname == "minion2") 
 
   - name: add minions keys 
-    shell: yes | salt-key -A
+    shell: echo y | salt-key -A
     when: (ansible_hostname == "master") 
+
+  - name: create dir /srv/salt
+    file:
+      path: /srv/salt
+      state: directory
+      mode: '0755'
+    when: (ansible_hostname == "master") 
+
+  - name: transfer top.sls
+    template:
+      src: ./install_nginx/top.sls
+      dest: /srv/salt/top.sls
+      owner: root
+      group: root
+      mode: '0644'
+    when: (ansible_hostname == "master") 
+
+  - name: create dir /srv/salt/nginx
+    file:
+      path: /srv/salt/nginx
+      state: directory
+      mode: '0755'
+    when: (ansible_hostname == "master") 
+
+  - name: transfer other salt files
+    copy:
+      src: "{{ item }}"
+      dest: /srv/salt/nginx/
+      owner: root
+      group: root
+      mode: '0644'
+    with_items:
+      - ./install_nginx/init.sls
+      - ./install_nginx/nginx.conf
+      - ./install_nginx/index.html.jinja
+    when: (ansible_hostname == "master") 
+
 
 
       
